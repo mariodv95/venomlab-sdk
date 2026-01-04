@@ -1,0 +1,12 @@
+package sdk
+
+import (
+	"github.com/hashicorp/go-plugin"
+)
+
+// HandshakeConfig è la configurazione di handshake
+var HandshakeConfig = plugin.HandshakeConfig{
+	ProtocolVersion:  1,
+	MagicCookieKey:   "VENOMLAB_PLUGIN",
+	MagicCookieValue: "f8a9b7c6d5e4f3a2b1c0d9e8f7a6b5c4",
+}

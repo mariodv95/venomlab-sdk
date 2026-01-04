@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "venomlab-aes-plugin/sdk/proto";
+
+// ShellcodeData rappresenta shellcode
+message ShellcodeData {
+  bytes bytes = 1;
+  bool is_encoded = 2;
+  string encoding_technique = 3;
+  bytes key = 4;
+  map<string, string> metadata = 5;
+}
+
+// SourceCodeData rappresenta codice sorgente
+message SourceCodeData {
+  map<string, string> files = 1;      // filename -> content
+  string language = 2;
+  map<string, string> metadata = 3;
+}
+
+// NodeData è un wrapper per qualsiasi tipo di dato
+message NodeData {
+  oneof data {
+    ShellcodeData shellcode = 1;
+    SourceCodeData source_code = 2;
+  }
+}
+
+//TODO: i tipi vanno estesi a tutti i tipi interscambiabili tra i nodi

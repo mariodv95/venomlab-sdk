@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "venomlab-aes-plugin/sdk/proto";
+
+import "types.proto";
+
+// ConfigParam rappresenta un parametro di configurazione
+message ConfigParam {
+  oneof value {
+    string string_value = 1;
+    int64 int_value = 2;
+    double double_value = 3;
+    bool bool_value = 4;
+    bytes bytes_value = 5;
+  }
+}
+
+// ConfigureRequest contiene i parametri di configurazione
+message ConfigureRequest {
+  map<string, ConfigParam> params = 1;
+}
+
+// ConfigureResponse indica il successo della configurazione
+message ConfigureResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// ExecuteRequest contiene gli input del nodo
+message ExecuteRequest {
+  map<string, NodeData> inputs = 1;
+}
+
+// ExecuteResponse contiene gli output del nodo
+message ExecuteResponse {
+  map<string, NodeData> outputs = 1;
+  string error = 2;
+}
+
+// GetMetadataRequest richiede i metadata del plugin
+message GetMetadataRequest {}
+
+// IOPort descrive una porta di input/output
+message IOPort {
+  string name = 1;
+  string type = 2;
+  bool optional = 3;
+}
+
+// NodeMetadata descrive il plugin
+message NodeMetadata {
+  string family = 1;
+  string name = 2;
+  string display_name = 3;
+  string description = 4;
+  string version = 5;
+  string author = 6;
+  repeated IOPort inputs = 7;
+  repeated IOPort outputs = 8;
+}
+
+// GetMetadataResponse restituisce i metadata
+message GetMetadataResponse {
+  NodeMetadata metadata = 1;
+}
+
+// VenomlabPlugin è il servizio del plugin
+// ogni plugin deve implementare queste funzionalità, che verranno chiamate dal core per l'utilizzo del plugin
+service VenomlabPlugin {
+  rpc GetMetadata(GetMetadataRequest) returns (GetMetadataResponse);
+  rpc Configure(ConfigureRequest) returns (ConfigureResponse);
+  rpc Execute(ExecuteRequest) returns (ExecuteResponse);
+}
