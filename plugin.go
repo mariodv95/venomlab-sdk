@@ -3,11 +3,10 @@ package sdk
 import (
 	"context"
 	"fmt"
+	proto "github.com/mariodv95/venomlab-sdk/proto/build"
 
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
-
-	"github.com/mariodv95/venomlab-sdk/proto"
 )
 
 // VenomlabPlugin implementa plugin.Plugin
