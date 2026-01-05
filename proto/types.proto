@@ -20,11 +20,20 @@ message SourceCodeData {
   map<string, string> metadata = 3;
 }
 
+// BinaryData rappresenta un binario
+message BinaryData {
+  bytes data = 1;
+  string platform = 2;
+  string arch = 3;
+  map<string, string> metadata = 4;
+}
+
 // NodeData è un wrapper per qualsiasi tipo di dato
 message NodeData {
   oneof data {
     ShellcodeData shellcode = 1;
     SourceCodeData source_code = 2;
+    BinaryData binary = 3;
   }
 }
 

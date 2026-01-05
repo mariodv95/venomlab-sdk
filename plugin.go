@@ -37,7 +37,7 @@ func (s *GRPCServer) GetMetadata(ctx context.Context, req *proto.GetMetadataRequ
 	for i, input := range metadata.Inputs {
 		protoInputs[i] = &proto.IOPort{
 			Name:     input.Name,
-			Type:     input.Type,
+			Type:     input.Type.String(),
 			Optional: input.Optional,
 		}
 	}
@@ -46,14 +46,14 @@ func (s *GRPCServer) GetMetadata(ctx context.Context, req *proto.GetMetadataRequ
 	for i, output := range metadata.Outputs {
 		protoOutputs[i] = &proto.IOPort{
 			Name:     output.Name,
-			Type:     output.Type,
+			Type:     output.Type.String(),
 			Optional: output.Optional,
 		}
 	}
 
 	return &proto.GetMetadataResponse{
 		Metadata: &proto.NodeMetadata{
-			Family:      metadata.Family,
+			NodeFamily:  metadata.Family.String(),
 			Name:        metadata.Name,
 			DisplayName: metadata.DisplayName,
 			Description: metadata.Description,
@@ -151,6 +151,17 @@ func (s *GRPCServer) Execute(ctx context.Context, req *proto.ExecuteRequest) (*p
 	return &proto.ExecuteResponse{Outputs: protoOutputs}, nil
 }
 
+func (s *GRPCServer) GetID(ctx context.Context, req *proto.GetIDRequest) (*proto.GetIDResponse, error) {
+	return &proto.GetIDResponse{
+		Id: s.Impl.GetID(),
+	}, nil
+}
+
+func (s *GRPCServer) SetID(ctx context.Context, req *proto.SetIDRequest) (*proto.SetIDResponse, error) {
+	s.Impl.SetID(req.Id)
+	return &proto.SetIDResponse{}, nil
+}
+
 // GRPCClient implementa il client gRPC
 type GRPCClient struct {
 	client proto.VenomlabPluginClient
@@ -166,7 +177,7 @@ func (c *GRPCClient) GetMetadata() NodeMetadata {
 	for i, input := range resp.Metadata.Inputs {
 		inputs[i] = IOPort{
 			Name:     input.Name,
-			Type:     input.Type,
+			Type:     NewDataType(input.Type),
 			Optional: input.Optional,
 		}
 	}
@@ -175,13 +186,13 @@ func (c *GRPCClient) GetMetadata() NodeMetadata {
 	for i, output := range resp.Metadata.Outputs {
 		outputs[i] = IOPort{
 			Name:     output.Name,
-			Type:     output.Type,
+			Type:     NewDataType(output.Type),
 			Optional: output.Optional,
 		}
 	}
 
 	return NodeMetadata{
-		Family:      resp.Metadata.Family,
+		Family:      NewNodeFamily(resp.Metadata.NodeFamily),
 		Name:        resp.Metadata.Name,
 		DisplayName: resp.Metadata.DisplayName,
 		Description: resp.Metadata.Description,
@@ -282,4 +293,16 @@ func (c *GRPCClient) Execute(inputs map[string]Data) (map[string]Data, error) {
 	}
 
 	return outputs, nil
+}
+
+func (c *GRPCClient) GetID() string {
+	resp, err := c.client.GetID(context.Background(), &proto.GetIDRequest{})
+	if err != nil {
+		return ""
+	}
+	return resp.Id
+}
+
+func (c *GRPCClient) SetID(id string) {
+	_, _ = c.client.SetID(context.Background(), &proto.SetIDRequest{Id: id})
 }

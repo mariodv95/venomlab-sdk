@@ -1,5 +1,10 @@
 package sdk
 
+import (
+	"fmt"
+	"github.com/google/uuid"
+)
+
 // VenomlabNode è l'interfaccia che tutti i plugin devono implementare
 type VenomlabNode interface {
 	// GetMetadata restituisce i metadata del nodo
@@ -10,50 +15,93 @@ type VenomlabNode interface {
 
 	// Execute esegue la logica del nodo
 	Execute(inputs map[string]Data) (map[string]Data, error)
+
+	// GetID ritorna l'ID univoco dell'istanza del nodo
+	GetID() string
+
+	// SetID imposta l'ID del nodo
+	SetID(id string)
 }
 
-// NodeMetadata descrive il plugin
-type NodeMetadata struct {
-	Family      string
-	Name        string
-	DisplayName string
-	Description string
-	Version     string
-	Author      string
-	Inputs      []IOPort
-	Outputs     []IOPort
+// BaseNode fornisce implementazione base per tutti i nodi
+type BaseNode struct {
+	ID       string
+	Metadata NodeMetadata
+	Params   map[string]interface{}
 }
 
-// IOPort descrive una porta di input/output
-type IOPort struct {
-	Name     string
-	Type     string
-	Optional bool
+func NewBaseNode(metadata NodeMetadata) *BaseNode {
+	return &BaseNode{
+		ID:       uuid.New().String(),
+		Metadata: metadata,
+		Params:   make(map[string]interface{}),
+	}
 }
 
-// Data è un'interfaccia per i dati processati
-type Data interface {
-	DataType() string
+func (b *BaseNode) GetMetadata() NodeMetadata {
+	return b.Metadata
 }
 
-// ShellcodeData rappresenta shellcode
-type ShellcodeData struct {
-	Bytes             []byte
-	IsEncoded         bool
-	EncodingTechnique string
-	Key               []byte
-	Metadata          map[string]string
+func (b *BaseNode) GetID() string {
+	return b.ID
 }
 
-func (s *ShellcodeData) DataType() string { return "shellcode" }
-
-// SourceCodeData rappresenta codice sorgente
-type SourceCodeData struct {
-	Files    map[string]string // filename -> content
-	Language string
-	Metadata map[string]string
+func (b *BaseNode) SetID(id string) {
+	b.ID = id
 }
 
-func (s *SourceCodeData) DataType() string { return "source_code" }
+func (b *BaseNode) Configure(params map[string]interface{}) error {
+	b.Params = params
+	return nil
+}
 
-// TODO: aggiungere gli stessi DataType che vengono aggiunti nel proto
+// ValidateInput verifica che l'input sia del tipo accettato
+func (b *BaseNode) ValidateInputs(inputs map[string]Data) error {
+	for _, port := range b.Metadata.Inputs {
+		// Se l'input è opzionale e non presente, skip
+		if port.Optional {
+			if _, exists := inputs[port.Name]; !exists {
+				continue
+			}
+		}
+
+		// Input richiesto: deve essere presente
+		data, exists := inputs[port.Name]
+		if !exists {
+			return fmt.Errorf("required input '%s' not provided", port.Name)
+		}
+
+		// Valida il Data
+		if err := data.Validate(); err != nil {
+			return fmt.Errorf("input '%s' validation failed: %w", port.Name, err)
+		}
+
+		// Verifica compatibilità del tipo
+		if data.Type() != port.Type {
+			return fmt.Errorf("input '%s': expected type %s, got %s",
+				port.Name, port.Type, data.Type())
+		}
+	}
+
+	return nil
+}
+
+// GetInputPort ritorna l'IOPort con il nome specificato, o errore se non esiste
+func (b *BaseNode) GetInputPort(name string) (*IOPort, error) {
+	for _, port := range b.Metadata.Inputs {
+		if port.Name == name {
+			return &port, nil
+		}
+	}
+	return nil, fmt.Errorf("input port '%s' not found", name)
+}
+
+// GetOutputPort ritorna l'IOPort con il nome specificato, o errore se non esiste
+func (b *BaseNode) GetOutputPort(name string) (*IOPort, error) {
+	for _, port := range b.Metadata.Outputs {
+		if port.Name == name {
+			return &port, nil
+		}
+	}
+	return nil, fmt.Errorf("output port '%s' not found", name)
+}

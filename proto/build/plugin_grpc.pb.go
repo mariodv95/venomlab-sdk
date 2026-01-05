@@ -21,6 +21,8 @@ type VenomlabPluginClient interface {
 	GetMetadata(ctx context.Context, in *GetMetadataRequest, opts ...grpc.CallOption) (*GetMetadataResponse, error)
 	Configure(ctx context.Context, in *ConfigureRequest, opts ...grpc.CallOption) (*ConfigureResponse, error)
 	Execute(ctx context.Context, in *ExecuteRequest, opts ...grpc.CallOption) (*ExecuteResponse, error)
+	GetID(ctx context.Context, in *GetIDRequest, opts ...grpc.CallOption) (*GetIDResponse, error)
+	SetID(ctx context.Context, in *SetIDRequest, opts ...grpc.CallOption) (*SetIDResponse, error)
 }
 
 type venomlabPluginClient struct {
@@ -58,6 +60,24 @@ func (c *venomlabPluginClient) Execute(ctx context.Context, in *ExecuteRequest, 
 	return out, nil
 }
 
+func (c *venomlabPluginClient) GetID(ctx context.Context, in *GetIDRequest, opts ...grpc.CallOption) (*GetIDResponse, error) {
+	out := new(GetIDResponse)
+	err := c.cc.Invoke(ctx, "/proto.VenomlabPlugin/GetID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *venomlabPluginClient) SetID(ctx context.Context, in *SetIDRequest, opts ...grpc.CallOption) (*SetIDResponse, error) {
+	out := new(SetIDResponse)
+	err := c.cc.Invoke(ctx, "/proto.VenomlabPlugin/SetID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VenomlabPluginServer is the server API for VenomlabPlugin service.
 // All implementations must embed UnimplementedVenomlabPluginServer
 // for forward compatibility
@@ -65,6 +85,8 @@ type VenomlabPluginServer interface {
 	GetMetadata(context.Context, *GetMetadataRequest) (*GetMetadataResponse, error)
 	Configure(context.Context, *ConfigureRequest) (*ConfigureResponse, error)
 	Execute(context.Context, *ExecuteRequest) (*ExecuteResponse, error)
+	GetID(context.Context, *GetIDRequest) (*GetIDResponse, error)
+	SetID(context.Context, *SetIDRequest) (*SetIDResponse, error)
 	mustEmbedUnimplementedVenomlabPluginServer()
 }
 
@@ -80,6 +102,12 @@ func (UnimplementedVenomlabPluginServer) Configure(context.Context, *ConfigureRe
 }
 func (UnimplementedVenomlabPluginServer) Execute(context.Context, *ExecuteRequest) (*ExecuteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Execute not implemented")
+}
+func (UnimplementedVenomlabPluginServer) GetID(context.Context, *GetIDRequest) (*GetIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetID not implemented")
+}
+func (UnimplementedVenomlabPluginServer) SetID(context.Context, *SetIDRequest) (*SetIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetID not implemented")
 }
 func (UnimplementedVenomlabPluginServer) mustEmbedUnimplementedVenomlabPluginServer() {}
 
@@ -148,6 +176,42 @@ func _VenomlabPlugin_Execute_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VenomlabPlugin_GetID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VenomlabPluginServer).GetID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.VenomlabPlugin/GetID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VenomlabPluginServer).GetID(ctx, req.(*GetIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VenomlabPlugin_SetID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VenomlabPluginServer).SetID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.VenomlabPlugin/SetID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VenomlabPluginServer).SetID(ctx, req.(*SetIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VenomlabPlugin_ServiceDesc is the grpc.ServiceDesc for VenomlabPlugin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +230,14 @@ var VenomlabPlugin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Execute",
 			Handler:    _VenomlabPlugin_Execute_Handler,
+		},
+		{
+			MethodName: "GetID",
+			Handler:    _VenomlabPlugin_GetID_Handler,
+		},
+		{
+			MethodName: "SetID",
+			Handler:    _VenomlabPlugin_SetID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
